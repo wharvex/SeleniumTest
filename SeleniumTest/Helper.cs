@@ -1,6 +1,8 @@
-﻿using OpenQA.Selenium;
+﻿using System.Diagnostics;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Support.UI;
+using InvalidOperationException = System.InvalidOperationException;
 
 namespace SeleniumTest;
 
@@ -59,7 +61,7 @@ public class Helper
     public static void DebugPrintTxt(string output, string suffix, bool append = false)
     {
         using var outputFile = new StreamWriter(
-            Path.Combine(DocPath, "sel_test_debug_" + suffix + ".txt"),
+            Path.Combine(DocPath, "sel_test_output_" + suffix + ".txt"),
             append
         );
 
@@ -68,8 +70,9 @@ public class Helper
 
     public static void SubmitFilter(IWebDriver driver, Actions actions)
     {
-        var i = 0;
-        while (i < 100)
+        var watch = Stopwatch.StartNew();
+        var worked = false;
+        while (watch.ElapsedMilliseconds < 10000)
         {
             try
             {
@@ -82,11 +85,12 @@ public class Helper
                             .FirstOrDefault(e => e.Displayed)
                     )
                     .Perform();
+                worked = true;
             }
-            catch (Exception)
-            {
-                i++;
-            }
+            catch (Exception) { }
         }
+
+        if (!worked)
+            throw new InvalidOperationException("blah");
     }
 }
